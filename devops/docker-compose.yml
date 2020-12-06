@@ -1,0 +1,56 @@
+version: '2.1'
+networks:
+  technoatom:
+    external: true
+    name: technoatom
+
+services:
+  mysql_db:
+    networks:
+      - technoatom
+    image: percona
+    restart: always
+    ports:
+      - "3306:3306"
+    volumes:
+      - E:\project\devops\script.sql:/docker-entrypoint-initdb.d/script.sql
+    environment:
+      MYSQL_ROOT_PASSWORD: qa_test
+    healthcheck:
+      test: ["CMD", "mysqladmin", "-uroot", "-pqa_test", "ping", "-h", "127.0.0.1"]
+      timeout: 30s
+      retries: 10
+
+  vk_mock:
+    networks:
+      - technoatom
+    build: E:\project\devops\vk_mock\
+    restart: always
+    ports:
+      - "5556:5556"
+
+  selenoid:
+    networks:
+      - technoatom
+    image: aerokube/selenoid
+    restart: always
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - E:\project\devops\browsers.json:/etc/selenoid/browsers.json
+    ports:
+      - "4444:4444"
+    command: ["-conf", "/etc/selenoid/browsers.json", "-container-network", "technoatom"]
+
+  myapp:
+    networks:
+      - technoatom
+    restart: always
+    image: myapp
+    volumes:
+    - E:\project\devops\myapp.conf:/var/myapp.conf
+    ports:
+      - "5555:5555"
+    command: "/app/myapp --config=/var/myapp.conf"
+    depends_on:
+      mysql_db:
+        condition: service_healthy

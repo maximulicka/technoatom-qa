@@ -1,0 +1,7 @@
+pytest
+pytest-xdist
+allure-pytest
+selenium
+requests
+sqlalchemy
+pymysql
