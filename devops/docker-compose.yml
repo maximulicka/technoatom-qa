@@ -54,3 +54,7 @@ services:
     depends_on:
       mysql_db:
         condition: service_healthy
+      vk_mock:
+        condition: service_started
+      selenoid:
+        condition: service_started
